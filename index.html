@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Language Reader</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            margin-top: 40px;
+        }
+        video {
+            border: 2px solid black;
+            width: 640px;
+            height: 480px;
+        }
+        input {
+            font-size: 18px;
+            text-align: center;
+            width: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sign Language Alphabet Reader</h1>
+    <video id="video" autoplay></video><br><br>
+    <button id="capture">Capture Sign</button><br><br>
+    <label for="output">Detected Letter:</label>
+    <input type="text" id="output" readonly>
+
+    <script>
+        const video = document.getElementById('video');
+        const captureBtn = document.getElementById('capture');
+        const output = document.getElementById('output');
+
+        // Ask for webcam access
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(error => {
+                alert('Could not access the webcam. Please allow camera permissions.');
+                console.error(error);
+            });
+
+        // Placeholder for when button is clicked
+        captureBtn.addEventListener('click', () => {
+            alert("Capture button clicked! (Backend not connected yet)");
+        });
+    </script>
+</body>
+</html>
+
