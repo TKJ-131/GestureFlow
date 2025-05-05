@@ -17,21 +17,33 @@
             font-size: 18px;
             text-align: center;
             width: 50px;
+        }
+        .toggle-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+        }
+        .active {
+            background-color: #4CAF50;
+            color: white;
         }   
     </style>
 </head>
 <body style="background-color: cornflowerblue;">
     <h1>Sign Language Alphabet Reader</h1>
     <video id="video" autoplay></video><br><br>
-    <button id="capture">Capture Sign</button><br><br>
+    <button id="toggleDetection" class="toggle-button">Enable Real-time Detection</button><br><br>
     <label for="output">Detected Letter:</label>
     <input type="text" id="output" readonly>
 
     <script>
         const video = document.getElementById('video');
-        const captureBtn = document.getElementById('capture');
+        const toggleBtn = document.getElementById('toggleDetection');
         const output = document.getElementById('output');
-    
+        let isDetecting = false;
+        let detectionInterval = null;
+
         // Ask for webcam access
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
@@ -41,16 +53,16 @@
                 alert('Could not access the webcam. Please allow camera permissions.');
                 console.error(error);
             });
-    
-        captureBtn.addEventListener('click', () => {
+
+        function captureAndPredict() {
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0);
-    
+
             const imageData = canvas.toDataURL('image/jpeg');
-    
+
             fetch('/predict', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -63,8 +75,22 @@
             .catch(error => {
                 console.error('Error sending image:', error);
             });
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            isDetecting = !isDetecting;
+            toggleBtn.classList.toggle('active');
+            toggleBtn.textContent = isDetecting ? 'Disable Real-time Detection' : 'Enable Real-time Detection';
+
+            if (isDetecting) {
+                // start continuous detection
+                detectionInterval = setInterval(captureAndPredict, 500);
+            } else {
+                // stop continuous detection
+                clearInterval(detectionInterval);
+                output.value = '';
+            }
         });
     </script>    
 </body>
 </html>
-
