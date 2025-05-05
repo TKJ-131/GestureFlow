@@ -17,10 +17,10 @@
             font-size: 18px;
             text-align: center;
             width: 50px;
-        }
+        }   
     </style>
 </head>
-<body>
+<body style="background-color: cornflowerblue;">
     <h1>Sign Language Alphabet Reader</h1>
     <video id="video" autoplay></video><br><br>
     <button id="capture">Capture Sign</button><br><br>
@@ -31,7 +31,7 @@
         const video = document.getElementById('video');
         const captureBtn = document.getElementById('capture');
         const output = document.getElementById('output');
-
+    
         // Ask for webcam access
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
@@ -41,12 +41,30 @@
                 alert('Could not access the webcam. Please allow camera permissions.');
                 console.error(error);
             });
-
-        // Placeholder for when button is clicked
+    
         captureBtn.addEventListener('click', () => {
-            alert("Capture button clicked! (Backend not connected yet)");
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+    
+            const imageData = canvas.toDataURL('image/jpeg');
+    
+            fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: imageData })
+            })
+            .then(response => response.json())
+            .then(data => {
+                output.value = data.letter;
+            })
+            .catch(error => {
+                console.error('Error sending image:', error);
+            });
         });
-    </script>
+    </script>    
 </body>
 </html>
 
