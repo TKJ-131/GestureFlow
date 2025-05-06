@@ -18,6 +18,16 @@ detector = HandDetector(detectionCon=0.7)
 def index():
     return render_template('index.html')
 
+def normalize_landmarks(lmList):
+    if not lmList:
+        return []
+    x0, y0 = lmList[0][1], lmList[0][2]
+    coords = [(x - x0, y - y0) for (_, x, y) in lmList]
+    flat = [item for tup in coords for item in tup]
+    max_abs = max([abs(val) for val in flat]) or 1
+    normalized = [(x / max_abs, y / max_abs) for (x, y) in coords]
+    return [coord for tup in normalized for coord in tup]
+
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
@@ -34,18 +44,10 @@ def predict():
         # If no hand detected
         if not lmList:
             return jsonify({'letter': '?'})
-
-        # Convert landmarks to flat input format
-        keypoints = []
-        for id, x, y in lmList:
-            keypoints.extend([x, y])
-        keypoints = np.array(keypoints).reshape(1, -1)
-
-        # Predict letter
+        norm_coords = normalize_landmarks(lmList)
+        keypoints = np.array(norm_coords).reshape(1, -1)
         prediction = model.predict(keypoints)[0]
-
         return jsonify({'letter': prediction})
-
     except Exception as e:
         print("Error:", e)
         return jsonify({'letter': '?'})
